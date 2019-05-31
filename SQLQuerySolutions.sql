@@ -56,3 +56,79 @@ SELECT i.Total AS 'Invoice Total',
 FROM Customer c
 LEFT JOIN Employee e ON e.EmployeeId = c.SupportRepId
 LEFT JOIN Invoice i ON i.CustomerId = c.CustomerId;
+
+--8. total_invoices_{year}.sql: How many Invoices were there in 2009 and 2011?
+--SUBSTRING extracts some characters from a string; doing this to extract only the year from InvoiceDate
+--SUBSTRING(string, start, length)
+--Since InvoiceDate is type datetime, must convert to string 
+--111 is the formatting style number for yyyy
+--0, 5 here will get the first 4 digits; i.e. the only thing we need for the yyyy format
+SELECT SUBSTRING(CONVERT(VARCHAR, InvoiceDate, 111), 0, 5) AS 'Year',
+COUNT(InvoiceId) AS 'Number of invoices'
+FROM Invoice
+WHERE InvoiceDate LIKE '%2009%' OR InvoiceDate LIKE '%2011%'
+--GROUP BY is needed to group the result set by year
+GROUP BY SUBSTRING(CONVERT(VARCHAR, InvoiceDate, 111), 0, 5);
+
+--9. total_sales_{year}.sql: What are the respective total sales for each of those years?
+SELECT SUBSTRING(CONVERT(VARCHAR, InvoiceDate, 111), 0, 5) AS 'Year',
+SUM(Total) AS 'Total Sales'
+FROM Invoice
+WHERE InvoiceDate LIKE '%2009%' OR InvoiceDate LIKE '%2011%'
+GROUP BY SUBSTRING(CONVERT(VARCHAR, InvoiceDate, 111), 0, 5);
+
+--10. invoice_37_line_item_count.sql: Looking at the InvoiceLine table, provide a query that COUNTs the number of line items for Invoice ID 37.
+SELECT COUNT(InvoiceLineId) AS 'Number of Line Items'
+FROM InvoiceLine
+WHERE InvoiceId = 37;
+
+--11. line_items_per_invoice.sql: Looking at the InvoiceLine table, provide a query that COUNTs the number of line items for each Invoice. HINT: GROUP BY
+SELECT COUNT(InvoiceLineId) AS 'Number of Line Items',
+	InvoiceId
+FROM InvoiceLine
+GROUP BY InvoiceId;
+
+--12. line_item_track.sql: Provide a query that includes the purchased track name with each invoice line item.
+SELECT 	il.InvoiceId,
+	il.InvoiceLineId,
+	t.Name AS 'Track Name'
+FROM Track t
+--LEFT JOIN includes tracks with null invoice values
+--(INNER) JOIN only returns matching values
+JOIN InvoiceLine il ON t.TrackId = il.TrackId;
+
+--13. line_item_track_artist.sql: Provide a query that includes the purchased track name AND artist name with each invoice line item.
+SELECT il.InvoiceId,
+	il.InvoiceLineId,
+	t.Name AS 'Track Name',
+	ar.Name AS 'Artist Name'
+FROM Track t
+JOIN InvoiceLine il ON t.TrackId = il.TrackId
+JOIN Album al ON al.AlbumId = t.AlbumId
+JOIN Artist ar ON ar.ArtistId = al.AlbumId;
+
+--14. country_invoices.sql: Provide a query that shows the # of invoices per country. HINT: GROUP BY
+SELECT COUNT(InvoiceId) AS 'Number of Invoices',
+	BillingCountry AS 'Country'
+FROM Invoice
+GROUP BY BillingCountry;
+
+--15. playlists_track_count.sql: Provide a query that shows the total number of tracks in each playlist. 
+--The Playlist name should be include on the resulant table.
+SELECT p.Name AS 'Playlist Name',
+	COUNT(pt.TrackId) AS 'Number of Tracks'
+FROM Playlist p
+JOIN PlaylistTrack pt ON pt.PlaylistId = p.PlaylistId
+GROUP BY p.Name;
+
+--16. tracks_no_id.sql: Provide a query that shows all the Tracks, but displays no IDs. 
+--The result should include the Album name, Media type and Genre.
+SELECT t.Name AS 'Track Name',
+	a.Title AS 'Album Name',
+	mt.Name AS 'Media Type',
+	g.Name AS 'Genre'
+FROM Track t, Album a, MediaType mt, Genre g
+WHERE a.AlbumId = t.AlbumId
+AND t.MediaTypeId = mt.MediaTypeId
+AND t.GenreId = g.GenreId;
+--JOINs would work the same here, but this looks neater
