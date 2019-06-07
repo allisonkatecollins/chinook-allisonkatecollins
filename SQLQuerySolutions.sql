@@ -132,3 +132,33 @@ WHERE a.AlbumId = t.AlbumId
 AND t.MediaTypeId = mt.MediaTypeId
 AND t.GenreId = g.GenreId;
 --JOINs would work the same here, but this looks neater
+
+--17. invoices_line_item_count.sql: Provide a query that shows all Invoices but includes the # of invoice line items.
+SELECT i.InvoiceId AS 'Invoice Id',
+	COUNT(il.InvoiceLineId) AS 'Number of line items'
+FROM Invoice i
+JOIN InvoiceLine il ON i.InvoiceId = il.InvoiceId
+GROUP BY i.InvoiceId;
+
+--18. sales_agent_total_sales.sql: Provide a query that shows total sales made by each sales agent.
+SELECT CONCAT(e.FirstName, ' ', e.LastName) AS 'Sales Agent',
+	SUM(i.Total) AS 'Total Sales'
+FROM Employee e, Invoice i, Customer c
+WHERE c.SupportRepId = e.EmployeeId
+AND i.CustomerId = c.CustomerId
+GROUP BY CONCAT(e.FirstName, ' ', e.LastName);
+
+--19. top_2009_agent.sql: Which sales agent made the most in sales in 2009?
+--order by descending totals, select only the first row
+--tried using LIMIT 1 at first, but doesn't seem to be supported by SSMS
+--same substring logic from earlier query
+SELECT TOP 1
+	CONCAT(e.FirstName, ' ', e.LastName) AS 'Sales Agent',
+	SUM(i.Total) AS 'Total Sales in 2009'
+FROM Employee e, Invoice i, Customer c
+WHERE c.SupportRepId = e.EmployeeId
+AND i.CustomerId = c.CustomerId
+AND SUBSTRING(CONVERT(VARCHAR(10), i.InvoiceDate, 111), 0, 5) LIKE '%2009%'
+GROUP BY CONCAT(e.FirstName, ' ', e.LastName)
+ORDER BY SUM(i.Total) DESC;
+
