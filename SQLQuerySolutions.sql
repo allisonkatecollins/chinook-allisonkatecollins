@@ -162,3 +162,80 @@ AND SUBSTRING(CONVERT(VARCHAR(10), i.InvoiceDate, 111), 0, 5) LIKE '%2009%'
 GROUP BY CONCAT(e.FirstName, ' ', e.LastName)
 ORDER BY SUM(i.Total) DESC;
 
+--20. top_agent.sql: Which sales agent made the most in sales over all?
+SELECT TOP 1
+	CONCAT(e.FirstName, ' ', e.LastName) AS 'Sales Agent',
+	SUM(i.Total) AS 'Total Overall Sales'
+FROM Employee e, Invoice i, Customer c
+WHERE c.SupportRepId = e.EmployeeId
+AND i.CustomerId = c.CustomerId
+GROUP BY CONCAT(e.FirstName, ' ', e.LastName)
+ORDER BY SUM(i.Total) DESC;
+
+--21. sales_agent_customer_count.sql: Provide a query that shows the count of customers assigned to each sales agent.
+SELECT CONCAT(e.FirstName, ' ', e.LastName) AS 'Sales Agent',
+	COUNT(c.CustomerId) AS 'Number of Customers'
+FROM Employee e, Customer c
+WHERE c.SupportRepId = e.EmployeeId
+GROUP BY CONCAT(e.FirstName, ' ', e.LastName);
+
+--22. sales_per_country.sql: Provide a query that shows the total sales per country.
+SELECT BillingCountry AS 'Country',
+	SUM(Total) AS 'Total Sales'
+FROM Invoice
+GROUP BY BillingCountry;
+
+--23. top_country.sql: Which country's customers spent the most?
+SELECT TOP 1
+	BillingCountry AS 'Country with Top Sales',
+	SUM(Total) AS 'Total Sales'
+FROM Invoice
+GROUP BY BillingCountry
+ORDER BY SUM(Total) DESC;
+
+--24. top_2013_track.sql: Provide a query that shows the most purchased track of 2013.
+--Join track id, invoice line, and invoice where year on invoice date is 2013
+--Without the joins, the number purchased is much higher
+SELECT TOP 1
+	t.NAME AS 'Track Name',
+	COUNT(il.TrackId) AS 'Number Purchased'
+FROM Track t
+JOIN InvoiceLine il ON il.TrackId = t.TrackId
+JOIN Invoice i ON i.InvoiceId = il.InvoiceId
+--alternate way to find 2013 from the substring conversion in previous queries
+WHERE i.InvoiceDate BETWEEN '2013-01-01' and '2013-12-31'
+GROUP BY t.Name
+ORDER BY COUNT(il.TrackId) DESC;
+
+--25. top_5_tracks.sql: Provide a query that shows the top 5 most purchased songs.
+SELECT TOP 5
+	t.Name AS 'Track Name',
+	COUNT(il.TrackId) AS 'Number Purchased'
+FROM Track t
+JOIN InvoiceLine il ON il.TrackId = t.TrackId
+JOIN Invoice i ON i.InvoiceId = il.InvoiceId
+GROUP BY t.Name
+ORDER BY COUNT(il.TrackId) DESC;
+
+--26. top_3_artists.sql: Provide a query that shows the top 3 best selling artists.
+SELECT TOP 3
+	ar.Name,
+	COUNT(il.TrackId) AS 'Tracks Sold'
+FROM Artist ar
+--so annoying that I have to jump through all these hoops to connect an artist to their track!!! inefficient database structure in my opinion
+JOIN Album al ON al.ArtistId = ar.ArtistId
+JOIN Track t ON t.AlbumId = al.AlbumId
+JOIN InvoiceLine il ON il.TrackId = t.TrackId
+JOIN Invoice i ON i.InvoiceId = il.InvoiceId
+GROUP BY ar.Name
+ORDER BY COUNT(il.TrackId) DESC;
+
+--27. top_media_type.sql: Provide a query that shows the most purchased Media Type.
+SELECT TOP 1
+	mt.Name AS 'Media Type',
+	COUNT(il.TrackId) AS 'Number of Tracks Sold'
+FROM MediaType mt
+JOIN Track t ON mt.MediaTypeId = t.MediaTypeId
+JOIN InvoiceLine il ON il.TrackId = t.TrackId
+GROUP BY mt.Name
+ORDER BY COUNT(il.TrackId) DESC;
