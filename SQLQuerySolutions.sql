@@ -222,7 +222,6 @@ SELECT TOP 3
 	ar.Name,
 	COUNT(il.TrackId) AS 'Tracks Sold'
 FROM Artist ar
---so annoying that I have to jump through all these hoops to connect an artist to their track!!! inefficient database structure in my opinion
 JOIN Album al ON al.ArtistId = ar.ArtistId
 JOIN Track t ON t.AlbumId = al.AlbumId
 JOIN InvoiceLine il ON il.TrackId = t.TrackId
